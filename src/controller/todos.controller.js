@@ -1,4 +1,4 @@
-import { all, run } from "../dbhelper.js"
+import { all, get, run } from "../dbhelper.js"
 
 export const todos = async (req, res) => {
     const userId = res.locals.user.id
@@ -30,10 +30,14 @@ export const addtodo = async (req, res) => {
     
     const sql = `INSERT INTO todos (title, userId) VALUES (?, ?);`
 
-   const order = await run(sql, [title,userId])
+    await run(sql, [title, userId])
+    
+    const TodoSql = `SELECT id,title,isCompleted FROM todos WHERE userId = ?`
+    const Todos = await get(TodoSql, [userId])
+    
 
     res.json({
-        product: order
+         Todos
     })
 }
 export const updatetodo = async (req, res) => {
@@ -44,19 +48,41 @@ export const updatetodo = async (req, res) => {
     isCompleted = 'true'
     WHERE userId = ? AND id = ?;
     `
-    const row = await run(sql, [userId,id])
+    const row = await run(sql, [userId, id])
+    
+    const TodoSql = `SELECT id,title,isCompleted  FROM todos WHERE userId = ?`
+    const Todos = await get(TodoSql,[userId])
 
     res.status(201).json({
-        product:row
+        Todos
+    })
+}
+export const changeTitle = async(req, res) => {
+    const userId = res.locals.user.id
+    const id = +req.params.id
+    const {title} = req.body
+
+    const sql = `UPDATE todos SET title =?   WHERE userId = ? AND id = ? ;`
+    
+    await run(sql, [title, userId, id])
+    
+    const TodoSql = `SELECT id,title,isCompleted  FROM todos WHERE id = ?`
+    const Todos = await get(TodoSql,[id])
+
+    res.status(201).json({
+        Todos
     })
 }
 export const deleteTodos = async (req, res) => {
+    const userId = res.locals.user.id
     const id = +req.params.id
-    const sql = `DELETE FROM todos WHERE id=?;`
+    const TodoSql = `SELECT id,title,isCompleted  FROM todos WHERE id = ?`
+    const Todos = await get(TodoSql,[id])
+    const sql = `DELETE FROM todos WHERE userId=? AND id=?;`
 
-    const product = await run(sql, [id])
+    await run(sql, [userId,id])
     
     res.status(201).json({
-        product
+        Todos
     })
 }

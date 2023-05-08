@@ -1,11 +1,12 @@
 import md5 from "md5"
 import { all, run } from "../dbhelper.js"
+import { nanoid } from "nanoid"
 
 
 export const registeruser = async (req, res) => {
     const { name, username, password } = req.body
     
-    const token = md5(password+password)
+    const token = md5(password+nanoid(5))
 
     const sql = `
     INSERT INTO 
@@ -13,14 +14,19 @@ export const registeruser = async (req, res) => {
     VALUES
         (?,?,?,?); 
     `
-    const rows = await run(sql, [
+     await run(sql, [
         name,
         username,
         password,
         token
     ])
     res.status(201).json({
-        user:rows
+        user: {
+            name,
+            username,
+            password,
+            token
+        }
     })
 }
 export const deletAccount = async (req, res) => {
